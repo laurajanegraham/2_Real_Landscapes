@@ -15,6 +15,8 @@ import pandas as pd
 import uuid
 from scipy.ndimage.filters import generic_filter
 import time
+import os
+
 # we need the job ID from the HPC job array to select the correct grid cells
 job_id = os.getenv('PBS_ARRAY_INDEX')
 
