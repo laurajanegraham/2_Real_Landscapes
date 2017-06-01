@@ -18,7 +18,7 @@ import time
 import os
 
 # we need the job ID from the HPC job array to select the correct grid cells
-job_id = os.getenv('PBS_ARRAY_INDEX')
+job_id = os.getenv('PBS_ARRAYID')
 
 # load in input data
 lcm = gr.from_file('data/lcm/lcm2007_25m_gb.tif')
