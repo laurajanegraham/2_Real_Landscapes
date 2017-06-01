@@ -6,7 +6,7 @@ Created on Thu May 25 10:18:20 2017
 """
 # this is for calculating estimated species richness of farmland bird indicator species
 # it needs properly sorting out for running on HPC
-
+#import os
 import nlmfunctions as nlm
 import georasters as gr
 import geopandas as gpd
@@ -14,9 +14,9 @@ import numpy as np
 import pandas as pd
 import uuid
 from scipy.ndimage.filters import generic_filter
-
+import time
 # we need the job ID from the HPC job array to select the correct grid cells
-job_id = os.getenv('PBS_ARRAY_INDEX')
+#job_id = os.getenv('PBS_ARRAY_INDEX')
 
 # load in input data
 lcm = gr.from_file('data/lcm/lcm2007_25m_gb.tif')
@@ -27,7 +27,7 @@ bng = gpd.read_file('data/bng/10km_grid_region.shp')
 # gb file is in WGS84, needs to be BNG
 #gb = gb.to_crs(bng.crs)
 pred_id = pd.read_csv('data/worldclim_vars.csv')
-pred_id = pred_id.query('JID == ' + str(job_id))
+#pred_id = pred_id.query('JID == ' + str(job_id))
 
 # habitats included in the analysis are 1-11 - these are the habitats mainly 
 # used by the farmland indicator bird species - may need to rethink at a later 
@@ -39,15 +39,21 @@ grid_cells = pred_id.grid_ref_levels
 # window size for analysis - this is the scale of the process - needs to be in metres
 w_sizes = [1000, 1500, 2000]
 
-res = pd.DataFrame()
+results = pd.DataFrame()
+
 
 for grid_ref in grid_cells:
     for w in w_sizes:
+        start = time.time()
         cellb = nlm.get_cell_buffer(bng, grid_ref, w/2)
     
         # clip the environmental data (land cover here) to the buffered cell
         env_clip = lcm.clip(cellb)[0].raster.data
     
+        # we need to know where in the buffered cell the original cell is
+        min_ix = int((w/2)/res)
+        max_ix = int(env_clip.shape[0]) - min_ix
+
         # we're currently avoiding any coastal 10 km cells to avoid edge effects. Here 0 is the no data value
         # any cell with a value of 0 is in the sea.                    
         if (env_clip == 0).sum() == 0:
@@ -59,10 +65,15 @@ for grid_ref in grid_cells:
             ls_amount = generic_filter(env_clip, nlm.lc_prop, int(w/res), mode='wrap', extra_keywords = {'lc':lc})*binary
             # for each cell, calculate the habitat heterogeneity within the window
             ls_hetero = generic_filter(env_clip, nlm.shannon, int(w/res), mode='wrap', extra_keywords = {'lc':lc})
+            
+            # get only cells within the 10km region
+            ls_amount = ls_amount[min_ix:max_ix, min_ix:max_ix]
+            ls_hetero = ls_hetero[min_ix:max_ix, min_ix:max_ix]
+            
             # multiply the amount*hetero*npp
             ls_both = ls_amount * ls_hetero
             out = pd.Series({'grid_ref': grid_ref, 'scale': w, 'ls_amount': np.mean(ls_amount), 'ls_hetero': np.mean(ls_hetero), 'ls_both': np.mean(ls_both)})
-            res = res.append(out, ignore_index=True)
-            
+            results = results.append(out, ignore_index=True)
+        print("PROCESSING COMPLETED FOR GRID " + grid_ref + " AT " + str(w) + " M SCALE took " + str(time.time() - start) + " seconds")
 unique_filename = uuid.uuid4()
-res.to_csv('farmland_birds/results/output'+str(unique_filename)+'.csv', index=False)
+results.to_csv('farmland_birds/results/output'+str(unique_filename)+'.csv', index=False)
