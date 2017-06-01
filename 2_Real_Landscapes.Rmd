@@ -149,8 +149,8 @@ prec <- wc_process("data/worldclim/wc2.0_30s_prec/", gb_shp, grid_raster, "sum")
 preds <- stack(grid_raster, av_temp, prec)
 names(preds) <- c("grid_ref", "av_temp", "prec")
 preds <- as.data.frame(preds, xy=TRUE) %>% filter(!is.na(grid_ref_levels))
-# we need a column which gives a grid cell a job array number for use on the HPC. 
-preds$JID <- 1:2
-write.csv(preds, file = "data/worldclim_vars.csv")
+# we need a column which gives a grid cell a job array number for use on the HPC. Here there are a small enough number of grid cells to go for two per job (i.e. a total of 746 jobs for 1492 cells)
+preds$JID <- as.integer(1:(nrow(preds)/2))
+write.csv(preds, file = "data/worldclim_vars.csv", row.names = FALSE)
 ```
 
