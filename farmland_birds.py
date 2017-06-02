@@ -28,7 +28,8 @@ bng = gpd.read_file('data/bng/10km_grid_region.shp')
 # gb file is in WGS84, needs to be BNG
 #gb = gb.to_crs(bng.crs)
 pred_id = pd.read_csv('data/worldclim_vars.csv')
-pred_id = pred_id.query('JID == ' + str(job_id))
+#pred_id = pred_id.query('JID == ' + str(job_id))
+pred_id = pred_id.query('JID == 1')
 
 # habitats included in the analysis are 1-11 - these are the habitats mainly 
 # used by the farmland indicator bird species - may need to rethink at a later 
@@ -49,7 +50,8 @@ for grid_ref in grid_cells:
         cellb = nlm.get_cell_buffer(bng, grid_ref, w/2)
     
         # clip the environmental data (land cover here) to the buffered cell
-        env_clip = lcm.clip(cellb)[0].raster.data
+        # converted to float because python behaves strangely with integers
+        env_clip = lcm.clip(cellb)[0].raster.data.astype(float)
     
         # we need to know where in the buffered cell the original cell is
         min_ix = int((w/2)/res)
