@@ -12,7 +12,6 @@ import georasters as gr
 import geopandas as gpd
 import numpy as np
 import pandas as pd
-import uuid
 from scipy.ndimage.filters import generic_filter
 import time
 import os
@@ -42,7 +41,7 @@ grid_cells = pred_id.grid_ref_levels
 w_sizes = [1000, 1500, 2000]
 
 results = pd.DataFrame()
-
+coastal = pd.DataFrame()
 
 for grid_ref in grid_cells:
     for w in w_sizes:
@@ -76,6 +75,13 @@ for grid_ref in grid_cells:
             ls_both = ls_amount * ls_hetero
             out = pd.Series({'grid_ref': grid_ref, 'scale': w, 'ls_amount': np.mean(ls_amount), 'ls_hetero': np.mean(ls_hetero), 'ls_both': np.mean(ls_both)})
             results = results.append(out, ignore_index=True)
+        else:
+            out = pd.Series({'grid_ref': grid_ref, 'scale': w})
+            coastal = coastal.append(out, ignore_index=True)
         print("PROCESSING COMPLETED FOR GRID " + grid_ref + " AT " + str(w) + " M SCALE took " + str(time.time() - start) + " seconds")
-unique_filename = uuid.uuid4()
-results.to_csv('farmland_birds/results/output'+str(unique_filename)+'.csv', index=False)
+
+if (results.size!=0):
+    results.to_csv('farmland_birds/results/output'+str(unique_filename)+'.csv', index=False)
+
+if (coastal.size!=0):
+    coastal.to_csv('farmland_birds/results/coastal'+str(job_id)+'.csv', index=False)
