@@ -81,7 +81,7 @@ for grid_ref in grid_cells:
         print("PROCESSING COMPLETED FOR GRID " + grid_ref + " AT " + str(w) + " M SCALE took " + str(time.time() - start) + " seconds")
 
 if (results.size!=0):
-    results.to_csv('farmland_birds/results/output'+str(unique_filename)+'.csv', index=False)
+    results.to_csv('farmland_birds/results/output_'+str(job_id)+'.csv', index=False)
 
 if (coastal.size!=0):
-    coastal.to_csv('farmland_birds/results/coastal'+str(job_id)+'.csv', index=False)
+    coastal.to_csv('farmland_birds/results/coastal_'+str(job_id)+'.csv', index=False)
