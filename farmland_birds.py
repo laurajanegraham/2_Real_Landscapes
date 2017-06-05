@@ -29,7 +29,7 @@ bng = gpd.read_file('data/bng/10km_grid_region.shp')
 #gb = gb.to_crs(bng.crs)
 pred_id = pd.read_csv('data/worldclim_vars.csv')
 #pred_id = pred_id.query('JID == ' + str(job_id))
-pred_id = pred_id.query('JID == 1')
+pred_id = pred_id.query('JID == 35')
 
 # habitats included in the analysis are 1-11 - these are the habitats mainly 
 # used by the farmland indicator bird species - may need to rethink at a later 
@@ -38,6 +38,8 @@ lc = np.arange(1, 12)
 
 # we want to loop through the grid cells in this job ID and the three chosen window sizes:
 grid_cells = pred_id.grid_ref_levels
+grid_cells = ['NY99']
+
 # window size for analysis - this is the scale of the process - needs to be in metres
 w_sizes = [1000, 1500, 2000]
 
