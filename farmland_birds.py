@@ -37,7 +37,6 @@ lc = np.arange(1, 12)
 
 # we want to loop through the grid cells in this job ID and the three chosen window sizes:
 grid_cells = pred_id.grid_ref_levels
-grid_cells = ['NY99']
 
 # window size for analysis - this is the scale of the process - needs to be in metres
 w_sizes = [1000, 1500, 2000]
