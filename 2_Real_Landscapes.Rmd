@@ -129,7 +129,10 @@ ggplot(es_dat_scaled, aes(x = x, y = y, fill = value)) +
   theme(strip.background = element_blank(), panel.spacing = unit(2, "lines"), axis.ticks=element_blank(), axis.text=element_blank(), axis.line=element_blank())
 ```
 
-### Predictor variables
+### Predictor variables 10km
+
+Some of the predictor variables will be at the 10km level, these are temperature, precipitation, proportion of habitat and Shannon diversity of habitat. 
+
 ```{r pred_data, cache = TRUE}
 av_temp = wc_process("data/worldclim/wc2.0_30s_tavg/", gb_shp, grid_raster, "mean")
 prec <- wc_process("data/worldclim/wc2.0_30s_prec/", gb_shp, grid_raster, "sum")
@@ -143,11 +146,15 @@ lcm_stats <- ldply(preds$grid_ref_levels, function(i) {
   lcm_crop <- as.matrix(crop(lcm, cell))
   lcm_prop <- lc_prop(lcm_crop, 1:11)
   lcm_shannon <- shannon(lcm_crop, 1:11)
-  grid_ref <- i
-  return(data.frame(grid_ref = grid_ref, prop = lcm_prop, shannon = lcm_shannon))
+  grid_ref_levels <- i
+  return(data.frame(grid_ref_levels = grid_ref_levels, prop = lcm_prop, shannon = lcm_shannon))
 })
+
+# combine the climate and land cover predictors 
+preds <- merge(preds, lcm_stats)
+
 # we need a column which gives a grid cell a job array number for use on the HPC. Here there are a small enough number of grid cells to go for two per job (i.e. a total of 746 jobs for 1492 cells)
 preds$JID <- as.integer(1:(nrow(preds)/2))
-write.csv(preds, file = "data/worldclim_vars.csv", row.names = FALSE)
+write.csv(preds, file = "data/predictors_10km.csv", row.names = FALSE)
 ```
 
