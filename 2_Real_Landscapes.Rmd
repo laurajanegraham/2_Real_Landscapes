@@ -13,6 +13,7 @@ library(plyr)
 library(tidyverse)
 library(cowplot)
 library(viridis)
+source("real_landscapes_functions.R")
 ```
 # Introduction
 
@@ -111,8 +112,6 @@ save(es_dat, file="data/es_values.rda")
 The data can now be scaled so as to be comparable for analysis and plotting. 
 
 ```{r plot_data, cache = TRUE}
-scale <- function(x) (x-min(x))/(max(x)-min(x))
-
 es_dat_scaled <- mutate(es_dat, 
                         farmland_bird = scale(farmland_bird),
                         agriculture = scale(agriculture),
@@ -132,23 +131,21 @@ ggplot(es_dat_scaled, aes(x = x, y = y, fill = value)) +
 
 ### Predictor variables
 ```{r pred_data, cache = TRUE}
-# function to process worldclim data to get annual summary for a particular study area
-wc_process <- function(dat_folder, crop_shp, proj_shp, fn) {
-  out <- list.files(dat_folder, pattern = ".tif", full.names = TRUE) %>%
-    lapply(raster) %>%
-    stack(.) %>%
-    crop(extent(crop_shp)) %>%
-    calc(fun = get(fn)) %>%
-    projectRaster(crs = proj4string(proj_shp)) %>%
-    crop(extent(proj_shp)) %>%
-    resample(proj_shp)
-} 
-
 av_temp = wc_process("data/worldclim/wc2.0_30s_tavg/", gb_shp, grid_raster, "mean")
 prec <- wc_process("data/worldclim/wc2.0_30s_prec/", gb_shp, grid_raster, "sum")
 preds <- stack(grid_raster, av_temp, prec)
 names(preds) <- c("grid_ref", "av_temp", "prec")
 preds <- as.data.frame(preds, xy=TRUE) %>% filter(!is.na(grid_ref_levels))
+
+lcm <- raster("data/lcm/lcm2007_25m_gb.tif")
+lcm_stats <- ldply(preds$grid_ref_levels, function(i) {
+  cell <- grid_10km[grid_10km$TILE_NAME == i,]
+  lcm_crop <- as.matrix(crop(lcm, cell))
+  lcm_prop <- lc_prop(lcm_crop, 1:11)
+  lcm_shannon <- shannon(lcm_crop, 1:11)
+  grid_ref <- i
+  return(data.frame(grid_ref = grid_ref, prop = lcm_prop, shannon = lcm_shannon))
+})
 # we need a column which gives a grid cell a job array number for use on the HPC. Here there are a small enough number of grid cells to go for two per job (i.e. a total of 746 jobs for 1492 cells)
 preds$JID <- as.integer(1:(nrow(preds)/2))
 write.csv(preds, file = "data/worldclim_vars.csv", row.names = FALSE)
