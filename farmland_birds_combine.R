@@ -1,7 +1,7 @@
 library(plyr)
 
-results <- ldply(list.files("farmland_birds/results/", pattern="output", full.names=TRUE), read.csv)
-coastal <- ldply(list.files("farmland_birds/results/", pattern="coastal", full.names=TRUE), read.csv)
+results <- ldply(list.files("farmland_birds/results/", pattern="output", full.names=TRUE), read.csv, stringsAsFactors=FALSE)
+coastal <- ldply(list.files("farmland_birds/results/", pattern="coastal", full.names=TRUE), read.csv, stringsAsFactors=FALSE)
 cell_list <- read.csv("data/worldclim_vars.csv", stringsAsFactors=FALSE)
 cells <- unique(c(results$grid_ref, coastal$grid_ref))
 
