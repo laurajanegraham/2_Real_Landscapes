@@ -5,8 +5,7 @@ Created on Thu May 25 10:18:20 2017
 @author: lg1u16
 """
 # this is for calculating estimated species richness of farmland bird indicator species
-# it needs properly sorting out for running on HPC
-#import os
+
 import nlmfunctions as nlm
 import georasters as gr
 import geopandas as gpd
@@ -62,7 +61,7 @@ for grid_ref in grid_cells:
         if (env_clip == 0).sum() == 0:
             # we need a surface of habitat or not (uses in1d to get true/false on elements 
             # of lc and then reshape to convert back to 2d)
-            binary = np.reshape(np.in1d(env_clip,lc), (-1, env_clip.shape[0]))
+            binary = np.reshape(np.in1d(env_clip,lc), (-1, env_clip.shape[1]))
             
             # for each cell, calculate habitat amount within the window
             ls_amount = generic_filter(env_clip, nlm.lc_prop, int(w/res), mode='wrap', extra_keywords = {'lc':lc})*binary
